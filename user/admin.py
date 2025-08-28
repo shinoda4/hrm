@@ -12,7 +12,16 @@ class UserAdmin(ImportExportModelAdmin):
     list_display = ['username', 'email', 'is_superuser', 'is_staff', 'is_active']
     search_fields = ['username', 'email']
     actions = ['make_superuser', 'reset_password']
-    readonly_fields = ("date_joined", "last_login")
+    exclude = ['password']
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = ["date_joined", "last_login", "username"]
+        if request.user.is_superuser:
+            return readonly_fields
+        else:
+            # 返回新的列表
+            return readonly_fields + ["user_permissions", "groups", "is_superuser", "is_staff", "is_active"]
+
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -48,15 +57,15 @@ class UserAdmin(ImportExportModelAdmin):
             return False
         return super().has_add_permission(request)
 
-    def get_form(self, request, obj=None, **kwargs):
-        form = super().get_form(request, obj, **kwargs)
-        form.base_fields["password"].disabled = True
-        if not request.user.is_superuser:
-            # 非超级用户不能改这些字段
-            for field in ["is_superuser", "is_staff", "is_active", "groups", "user_permissions"]:
-                if field in form.base_fields:
-                    form.base_fields[field].disabled = True
-        return form
+    # def get_form(self, request, obj=None, **kwargs):
+    #     form = super().get_form(request, obj, **kwargs)
+    #     form.base_fields["password"].disabled = True
+    #     if not request.user.is_superuser:
+    #         # 非超级用户不能改这些字段
+    #         for field in ["is_superuser", "is_staff", "is_active", "groups", "user_permissions"]:
+    #             if field in form.base_fields:
+    #                 form.base_fields[field].disabled = True
+    #     return form
 
     @admin.action(description="标记所选用户为管理员")
     def make_superuser(self, request, queryset):
