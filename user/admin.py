@@ -14,6 +14,10 @@ class UserAdmin(ImportExportModelAdmin):
     actions = ['make_superuser', 'reset_password']
     readonly_fields = ("date_joined", "last_login")
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._old_obj = None
+
     def save_model(self, request, obj, form, change):
         if change:  # 只有修改时才取旧值
             self._old_obj = obj.__class__.objects.get(pk=obj.pk)
@@ -54,10 +58,23 @@ class UserAdmin(ImportExportModelAdmin):
                     form.base_fields[field].disabled = True
         return form
 
+    @admin.action(description="标记所选用户为管理员")
+    def make_superuser(self, request, queryset):
+        queryset.update(is_superuser=True)
+
+    @admin.action(description="重置密码为123456")
+    def reset_password(self, request, queryset):
+        for user in queryset:
+            user.set_password("123456")
+            user.save()
+        self.message_user(request, f"{queryset.count()} 个用户的密码已重置为 123456", messages.SUCCESS)
+
     def log_change(self, request, obj, message):
         changes = []
         if hasattr(self, "_old_obj") and self._old_obj:
             for field in obj._meta.fields:
+                if field.name in ["updated_at", "created_at"]:
+                    continue
                 field_name = field.name
                 old_val = getattr(self._old_obj, field_name, None)
                 new_val = getattr(obj, field_name, None)
@@ -77,14 +94,3 @@ class UserAdmin(ImportExportModelAdmin):
             action_flag=CHANGE,
             change_message=custom_message
         )
-
-    @admin.action(description="标记所选用户为管理员")
-    def make_superuser(self, request, queryset):
-        queryset.update(is_superuser=True)
-
-    @admin.action(description="重置密码为123456")
-    def reset_password(self, request, queryset):
-        for user in queryset:
-            user.set_password("123456")
-            user.save()
-        self.message_user(request, f"{queryset.count()} 个用户的密码已重置为 123456", messages.SUCCESS)

@@ -9,3 +9,4 @@ wheels/
 media
 # Virtual environments
 .venv
+db.sqlite3
