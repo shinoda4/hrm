@@ -10,7 +10,8 @@ class FieldChangeApplication(models.Model):
         ("rejected", "已驳回"),
     ]
     FIELD_CHOICES = [
-        ("salary", "薪资(RMB)"),
+        # ("salary", "薪资(RMB)"),
+        ("username", "用户名"),
     ]
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="applications", verbose_name="用户"

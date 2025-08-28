@@ -23,7 +23,6 @@ class User(AbstractUser):
         default="user/photos/default.png"
     )
     phone = models.CharField(verbose_name="手机", max_length=11, unique=True, blank=False, null=False)
-    salary = models.IntegerField(default=0, verbose_name="薪资(RMB)")
     first_name = models.CharField("名", max_length=150, blank=True)
     last_name = models.CharField("姓", max_length=150, blank=True)
     is_staff = models.BooleanField(
