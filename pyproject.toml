@@ -1,0 +1,12 @@
+[project]
+name = "hrm"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=5.2.5",
+    "django-import-export>=4.3.9",
+    "openpyxl>=3.1.5",
+    "pillow>=11.3.0",
+]
