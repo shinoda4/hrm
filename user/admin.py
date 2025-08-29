@@ -40,11 +40,8 @@ class UserAdmin(ImportExportModelAdmin):
         return qs.filter(id=request.user.id)
 
     def has_change_permission(self, request, obj=None):
-        # if request.user.is_superuser:
-        #     return True
-        if obj is not None and obj.is_superuser:
+        if obj is not None and not request.user.is_superuser and obj.is_superuser:
             return False
-        # return True
         return super().has_change_permission(request, obj)
 
     def has_delete_permission(self, request, obj=None):
