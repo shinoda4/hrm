@@ -14,6 +14,14 @@ class UserAdmin(ImportExportModelAdmin):
     actions = ['make_superuser', 'reset_password']
     exclude = ['password']
 
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if not request.user.has_perm("user.reset_password"):
+            actions.pop("reset_password", None)
+        if not request.user.has_perm("user.make_superuser"):
+            actions.pop("make_superuser", None)
+        return actions
+
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = ["date_joined", "last_login", "username"]
         if request.user.is_superuser:
@@ -66,10 +74,16 @@ class UserAdmin(ImportExportModelAdmin):
 
     @admin.action(description="标记所选用户为管理员")
     def make_superuser(self, request, queryset):
+        if not request.user.is_superuser or not request.user.has_perm("user.make_superuser"):
+            self.message_user(request, "你没有权限执行此操作", messages.ERROR)
+            return
         queryset.update(is_superuser=True)
 
     @admin.action(description="重置密码为123456")
     def reset_password(self, request, queryset):
+        if not request.user.has_perm("user.reset_password"):
+            self.message_user(request, "你没有权限执行此操作", messages.ERROR)
+            return
         for user in queryset:
             user.set_password("123456")
             user.save()

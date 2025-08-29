@@ -57,3 +57,7 @@ class User(AbstractUser):
     class Meta:
         verbose_name = "用户"
         verbose_name_plural = verbose_name
+        permissions = [
+            ("reset_password", "可以重置用户密码为123456"),
+            ("make_superuser", "可以更改用户为超级管理员"),
+        ]
