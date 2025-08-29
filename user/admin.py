@@ -15,12 +15,12 @@ class UserAdmin(ImportExportModelAdmin):
     exclude = ['password']
 
     def get_readonly_fields(self, request, obj=None):
-        readonly_fields = ["date_joined", "last_login", "username"]
+        readonly_fields = ["date_joined", "last_login"]
         if request.user.is_superuser:
             return readonly_fields
         else:
             # 返回新的列表
-            return readonly_fields + ["user_permissions", "groups", "is_superuser", "is_staff", "is_active"]
+            return readonly_fields + ["username", "user_permissions", "groups", "is_superuser", "is_staff", "is_active"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -40,32 +40,27 @@ class UserAdmin(ImportExportModelAdmin):
         return qs.filter(id=request.user.id)
 
     def has_change_permission(self, request, obj=None):
-        # if request.user.is_superuser:
-        #     return True
-        if obj is not None and obj.is_superuser:
+        if obj is not None and not request.user.is_superuser and obj.is_superuser:
             return False
-        # return True
+
+        if obj is not None and not request.user.is_superuser and obj.id != request.user.id and obj.is_superuser:
+            return False
         return super().has_change_permission(request, obj)
 
     def has_delete_permission(self, request, obj=None):
-        # if not request.user.is_superuser:
-        #     return False
         return super().has_delete_permission(request, obj)
 
     def has_add_permission(self, request):
-        # if not request.user.is_superuser:
-        #     return super().has_add_permission(request)
         return super().has_add_permission(request)
 
-    # def get_form(self, request, obj=None, **kwargs):
-    #     form = super().get_form(request, obj, **kwargs)
-    #     form.base_fields["password"].disabled = True
-    #     if not request.user.is_superuser:
-    #         # 非超级用户不能改这些字段
-    #         for field in ["is_superuser", "is_staff", "is_active", "groups", "user_permissions"]:
-    #             if field in form.base_fields:
-    #                 form.base_fields[field].disabled = True
-    #     return form
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if not request.user.is_superuser:
+            # 非超级用户不能改这些字段
+            for field in ["is_superuser", "is_staff", "is_active", "groups", "user_permissions"]:
+                if field in form.base_fields:
+                    form.base_fields[field].disabled = True
+        return form
 
     @admin.action(description="标记所选用户为管理员")
     def make_superuser(self, request, queryset):
