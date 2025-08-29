@@ -9,6 +9,7 @@ class ApplicationMessageInline(admin.StackedInline):
     model = ApplicationMessage
     extra = 0
     readonly_fields = ["application", "user", "content", "created_at"]
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         # 普通用户只能看自己的消息
@@ -68,6 +69,8 @@ class FieldChangeApplicationAdmin(admin.ModelAdmin):
             self._old_obj = None
         if not change or not obj.user_id:
             obj.user = request.user
+        if obj.status == "pending":
+            obj.pending_application(request)
         if obj.status == "approved":
             obj.approve_application(request)
         if obj.status == "rejected":
