@@ -22,7 +22,6 @@ class UserAdmin(ImportExportModelAdmin):
             # 返回新的列表
             return readonly_fields + ["user_permissions", "groups", "is_superuser", "is_staff", "is_active"]
 
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._old_obj = None
@@ -36,25 +35,26 @@ class UserAdmin(ImportExportModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if request.user.is_superuser:
+        if request.user.has_perm("user.change_user"):
             return qs
         return qs.filter(id=request.user.id)
 
     def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj is not None and obj.id != request.user.id:
+        # if request.user.is_superuser:
+        #     return True
+        if obj is not None and obj.is_superuser:
             return False
-        return True
+        # return True
+        return super().has_change_permission(request, obj)
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_superuser:
-            return False
+        # if not request.user.is_superuser:
+        #     return False
         return super().has_delete_permission(request, obj)
 
     def has_add_permission(self, request):
-        if not request.user.is_superuser:
-            return False
+        # if not request.user.is_superuser:
+        #     return super().has_add_permission(request)
         return super().has_add_permission(request)
 
     # def get_form(self, request, obj=None, **kwargs):
