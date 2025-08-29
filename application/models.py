@@ -42,16 +42,16 @@ class FieldChangeApplication(models.Model):
 
     def pending_application(self, request):
         request_user = self.user
-        setattr(request_user, self.field_name, self.new_value)
-        request_user.save()
+        # setattr(request_user, self.field_name, self.new_value)
+        # request_user.save()
 
         content = f"等待审批 {self.field_name}: {self.old_value} -> {self.new_value}"
-        ApplicationMessage.objects.create(application=self, user=request_user, content=content,
-                                          approval_user=request.user)
 
         self.status = "pending"
         self.archived = False
         self.save()
+        ApplicationMessage.objects.create(application=self, user=request_user, content=content,
+                                          approval_user=request.user)
 
     def approve_application(self, request):
         request_user = self.user
