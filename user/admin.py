@@ -43,9 +43,9 @@ class UserAdmin(ImportExportModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if request.user.has_perm("user.change_user"):
-            return qs
-        return qs.filter(id=request.user.id)
+        if not request.user.is_superuser and not request.user.has_perm("user.change_user"):
+            return qs.filter(id=request.user.id)
+        return super().get_queryset(request)
 
     def has_change_permission(self, request, obj=None):
         if obj is not None and not request.user.is_superuser and obj.is_superuser:
